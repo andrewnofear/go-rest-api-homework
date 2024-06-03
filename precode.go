@@ -70,22 +70,20 @@ func handleAddId(res http.ResponseWriter, req *http.Request) {
 	}
 
 	ind := chi.URLParam(req, "id")
-	if _, ok := tasks[ind]; ok == false {
-		tasks[ind] = task
-		res.Header().Set("Content-Type", "application/json")
-		res.WriteHeader(http.StatusCreated)
-	} else {
+	if _, ok := tasks[ind]; ok {
 		http.Error(res, "Task exist", http.StatusBadRequest)
 		return
 	}
+	tasks[ind] = task
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusCreated)
 }
 
 // handleGetId обрабатывает GET запросы на получение элемента мапы по ID
 func handleGetId(res http.ResponseWriter, req *http.Request) {
-
 	ind := chi.URLParam(req, "id")
 	task, ok := tasks[ind]
-	if ok == false {
+	if !ok {
 		http.Error(res, "Task not exist", http.StatusBadRequest)
 		return
 	}
@@ -104,7 +102,7 @@ func handleGetId(res http.ResponseWriter, req *http.Request) {
 // handleDelId обрабатывает DELETE запросы на удаление элемента мапы по ID
 func handleDelId(res http.ResponseWriter, req *http.Request) {
 	ind := chi.URLParam(req, "id")
-	if _, ok := tasks[ind]; ok == false {
+	if _, ok := tasks[ind]; !ok {
 		http.Error(res, "Task not exist", http.StatusBadRequest)
 		return
 	}
