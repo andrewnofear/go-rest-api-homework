@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"net/http"
-	"strings"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // Task ...
@@ -69,31 +69,30 @@ func handleAddId(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	ind := req.URL.Path[strings.LastIndex(req.URL.Path, "/")+1:] //выделяем index в URL
-	if _, err := tasks[ind]; err == true {
+	ind := chi.URLParam(req, "id")
+	if _, ok := tasks[ind]; ok == false {
+		tasks[ind] = task
+		res.Header().Set("Content-Type", "application/json")
+		res.WriteHeader(http.StatusCreated)
+	} else {
 		http.Error(res, "Task exist", http.StatusBadRequest)
 		return
 	}
-
-	tasks[ind] = task
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(http.StatusCreated)
 }
 
 // handleGetId обрабатывает GET запросы на получение элемента мапы по ID
 func handleGetId(res http.ResponseWriter, req *http.Request) {
-	var task Task
 
-	ind := req.URL.Path[strings.LastIndex(req.URL.Path, "/")+1:] //выделяем index в URL
-	if _, err := tasks[ind]; err == false {
+	ind := chi.URLParam(req, "id")
+	task, ok := tasks[ind]
+	if ok == false {
 		http.Error(res, "Task not exist", http.StatusBadRequest)
 		return
 	}
 
-	task = tasks[ind]
 	dataJson, err := json.Marshal(task)
 	if err != nil {
-		http.Error(res, err.Error(), http.StatusBadRequest)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -104,8 +103,8 @@ func handleGetId(res http.ResponseWriter, req *http.Request) {
 
 // handleDelId обрабатывает DELETE запросы на удаление элемента мапы по ID
 func handleDelId(res http.ResponseWriter, req *http.Request) {
-	ind := req.URL.Path[strings.LastIndex(req.URL.Path, "/")+1:] //выделяем index в URL
-	if _, err := tasks[ind]; err == false {
+	ind := chi.URLParam(req, "id")
+	if _, ok := tasks[ind]; ok == false {
 		http.Error(res, "Task not exist", http.StatusBadRequest)
 		return
 	}
